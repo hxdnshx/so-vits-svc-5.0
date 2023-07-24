@@ -1,0 +1,13 @@
+__pycache__/
+chkpt/
+.idea/
+crepe/
+data_svc/
+dataset_raw
+logs/
+*.npy
+*.wav
+*.csv
+*.pt
+*.pth
+*.txt
