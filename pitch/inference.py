@@ -10,9 +10,11 @@ from pitch.RMVPEF0Predictor import RMVPEF0Predictor
 
 
 def compute_f0_voice(filename, device):
-    audio, sr = librosa.load(filename, sr=16000)
+    f0_predictor_object = RMVPEF0Predictor(hop_length=320, sampling_rate=16000, dtype=torch.float32,
+                                           device=device)
+    audio_raw, sr = librosa.load(filename, sr=16000)
     assert sr == 16000
-    audio = torch.tensor(np.copy(audio))[None]
+    audio = torch.tensor(np.copy(audio_raw))[None]
     # Here we'll use a 10 millisecond hop length
     hop_length = 160
     fmin = 50
@@ -30,7 +32,8 @@ def compute_f0_voice(filename, device):
         device=device,
         return_periodicity=False,
     )
-    pitch = crepe.filter.mean(pitch, 5)
+    pitch = f0_predictor_object.compute_f0(audio_raw)
+    # pitch = crepe.filter.mean(pitch, 5)
     pitch = pitch.squeeze(0)
     return pitch
 

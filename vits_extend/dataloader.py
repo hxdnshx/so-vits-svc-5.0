@@ -29,7 +29,7 @@ def create_dataloader_eval(hps):
     eval_dataset = TextAudioSpeakerSet(hps.data.validation_files, hps.data)
     eval_loader = DataLoader(
         eval_dataset,
-        num_workers=2,
+        num_workers=4,
         shuffle=False,
         batch_size=hps.train.batch_size,
         pin_memory=True,
