@@ -13,7 +13,7 @@
 - 本项目旨在帮助深度学习初学者，摆脱枯燥的纯理论学习，通过与实践结合，熟练掌握深度学习基本知识；
 - 本项目不支持实时变声；（支持需要换掉whisper）
 - 本项目不会开发用于其他用途的一键包
-- **本项目只是使用简洁明了的代码结构，方便学习研究，效果远不如[so-vits-svc](https://github.com/svc-develop-team/so-vits-svc)**
+- **本项目使用简洁明了的代码结构，用于学习研究；不研究代码，只要效果，可直接用[so-vits-svc](https://github.com/svc-develop-team/so-vits-svc)**
 
 ![vits-5.0-frame](https://github.com/PlayVoice/so-vits-svc-5.0/assets/16432329/3854b281-8f97-4016-875b-6eb663c92466)
 
@@ -68,6 +68,8 @@ Powered by [@ShadowVap](https://space.bilibili.com/491283091)
 
 6.  下载音高提取模型[crepe full](https://github.com/maxrmorrison/torchcrepe/tree/master/torchcrepe/assets)，把`full.pth`放到`crepe/assets`里面
 
+    **注意：full.pth为84.9M，请确认文件大小无误**
+    
 7.  下载[sovits5.0.pretrain.pth](https://github.com/PlayVoice/so-vits-svc-5.0/releases/tag/5.0/), 把它放到`vits_pretrain/`里面，推理测试
 
     > python svc_inference.py --config configs/base.yaml --model ./vits_pretrain/sovits5.0.pretrain.pth --spk ./configs/singers/singer0001.npy --wave test.wav
@@ -196,7 +198,7 @@ data_svc/
    ```
 2. 恢复训练
    ```
-   python svc_trainer.py -c configs/base.yaml -n sovits5.0 -p chkpt/sovits5.0/***.pth
+   python svc_trainer.py -c configs/base.yaml -n sovits5.0 -p chkpt/sovits5.0/sovits5.0_***.pt
    ```
 3. 训练日志可视化
    ```
@@ -250,6 +252,25 @@ data_svc/
     | args | --config | --model | --spk | --wave | --ppg | --vec | --pit | --shift |
     | :---:  | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
     | name | 配置文件 | 模型文件 | 音色文件 | 音频文件 | ppg内容 | hubert内容 | 音高内容 | 升降调 |
+
+4. 去噪后处理
+```
+python svc_inference_post.py --ref test.wav --svc svc_out.wav --out svc_out_post.wav
+```
+
+## 两种训练模式
+- 分散模式：训练索引中，音色文件使用音频音色
+- 统一模式：训练索引中，音色文件使用发音人音色
+
+**问题：哪种情况下，哪个模式更好**
+
+## 模型融合
+```
+python svc_merge.py --model1 模型1.pt --model1 模型2.pt --rate 模型1占比(0~1)
+```
+对不同epoch的模型进行融合，可以获得比较平均的性能、削弱过拟合
+
+例如：python svc_merge.py --model1 chkpt\sovits5.0\sovits5.0_1045.pt --model2 chkpt\sovits5.0\sovits5.0_1050.pt --rate 0.4
 
 ## 捏音色
 纯属巧合的取名：average -> ave -> eva，夏娃代表者孕育和繁衍
@@ -342,9 +363,9 @@ https://github.com/OlaWod/FreeVC/blob/main/preprocess_sr.py
   <img src="https://contrib.rocks/image?repo=PlayVoice/so-vits-svc" />
 </a>
 
-## 学习交流群：没有一键包
+## 学习交流群：非一键包
 <div align="center">
 
-![炼丹师公会-SVC群聊二维码](https://github.com/PlayVoice/vits_chinese/assets/16432329/1d728f61-be74-4706-9ecf-5cb0be4c094c)
+![X·SING-QQ](https://github.com/PlayVoice/so-vits-svc-5.0/assets/16432329/dfbb4740-447e-40f0-9193-c974c4b6ceb0)
 
 </div>

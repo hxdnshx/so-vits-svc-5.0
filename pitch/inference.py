@@ -9,12 +9,50 @@ import crepe
 from pitch.RMVPEF0Predictor import RMVPEF0Predictor
 
 
+def move_average(a, n, mode="same"):
+    return (np.convolve(a, np.ones((n,))/n, mode=mode))
+
+
+def compute_f0_mouth(path, device):
+    # pip install praat-parselmouth
+    import parselmouth
+
+    x, sr = librosa.load(path, sr=16000)
+    assert sr == 16000
+    lpad = 1024 // 160
+    rpad = lpad
+    f0 = parselmouth.Sound(x, sr).to_pitch_ac(
+        time_step=160 / sr,
+        voicing_threshold=0.5,
+        pitch_floor=30,
+        pitch_ceiling=1000).selected_array['frequency']
+    f0 = np.pad(f0, [[lpad, rpad]], mode='constant')
+    return f0
+
+
+def compute_f0_salience(filename, device):
+    from pitch.core.salience import salience
+    audio, sr = librosa.load(filename, sr=16000)
+    assert sr == 16000
+    f0, t, s = salience(
+        audio,
+        Fs=sr,
+        H=320,
+        N=2048,
+        F_min=45.0,
+        F_max=1760.0)
+    f0 = np.repeat(f0, 2, -1)  # 320 -> 160 * 2
+    f0 = move_average(f0, 3)
+    return f0
+
+
 def compute_f0_voice(filename, device):
     f0_predictor_object = RMVPEF0Predictor(hop_length=320, sampling_rate=16000, dtype=torch.float32,
                                            device=device)
     audio_raw, sr = librosa.load(filename, sr=16000)
     assert sr == 16000
     audio = torch.tensor(np.copy(audio_raw))[None]
+    audio = audio + torch.randn_like(audio) * 0.001
     # Here we'll use a 10 millisecond hop length
     hop_length = 160
     fmin = 50
@@ -32,6 +70,7 @@ def compute_f0_voice(filename, device):
         device=device,
         return_periodicity=False,
     )
+    # pitch = crepe.filter.mean(pitch, 3)
     pitch = f0_predictor_object.compute_f0(audio_raw)
     # pitch = crepe.filter.mean(pitch, 5)
     pitch = pitch.squeeze(0)
@@ -45,6 +84,7 @@ def compute_f0_sing(filename, device):
     audio_raw, sr = librosa.load(filename, sr=16000)
     assert sr == 16000
     audio = torch.tensor(np.copy(audio_raw))[None]
+    audio = audio + torch.randn_like(audio) * 0.001
     # Here we'll use a 20 millisecond hop length
     hop_length = 320
     fmin = 50
